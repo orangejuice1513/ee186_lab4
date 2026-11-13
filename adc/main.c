@@ -57,7 +57,6 @@ void init_uart(void)
 }
 
 // initialize adc
-// initialize adc
 void init_adc(void)
 {
     ADC1->CR &= ~ADC_CR_DEEPPWD;  // exit deep-power-down

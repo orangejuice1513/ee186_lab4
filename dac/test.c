@@ -18,6 +18,8 @@ void init_clock(void)
     ADC1_COMMON->CCR &= ~(3 << 16);
     ADC1_COMMON->CCR |= (1 << 16);
 
+
+    // for UART 
     __HAL_RCC_GPIOG_CLK_ENABLE();
     __HAL_RCC_LPUART1_CLK_ENABLE();
     __HAL_RCC_PWR_CLK_ENABLE();
@@ -27,6 +29,9 @@ void init_clock(void)
     clock.PeriphClockSelection = RCC_PERIPHCLK_LPUART1;
     clock.Lpuart1ClockSelection = RCC_LPUART1CLKSOURCE_PCLK1;
     HAL_RCCEx_PeriphCLKConfig(&clock);
+
+    RCC->AHB2ENR |= (1 << 0);       // GPIOA clock
+    RCC->APB1ENR1 |= (1 << 29);     // DAC clock
 }
 
 // initialize the GPIO pin for ADC (STM PA3 = A0)
@@ -90,17 +95,14 @@ void init_adc(void)
 // initialize DAC output on PA4
 void init_dac(void)
 {
-RCC->AHB2ENR |= (1 << 0);       // GPIOA clock
-RCC->APB1ENR1 |= (1 << 29);     // DAC clock
+    GPIOA->MODER |= (3 << 8);       // PA4: analog
+    GPIOA->PUPDR &= ~(3 << 8);      // no pulls
 
-GPIOA->MODER |= (3 << 8);       // PA4: analog
-GPIOA->PUPDR &= ~(3 << 8);      // no pulls
+    DAC1->CR &= ~DAC_CR_TEN1;       // no timer trigger
+    DAC1->MCR &= ~DAC_MCR_MODE1;    // normal mode, output buffer enabled
+    DAC1->CR |= DAC_CR_EN1;         // enable channel 1
 
-DAC1->CR &= ~DAC_CR_TEN1;       // no timer trigger
-DAC1->MCR &= ~DAC_MCR_MODE1;    // normal mode, output buffer enabled
-DAC1->CR |= DAC_CR_EN1;         // enable channel 1
-
-HAL_Delay(1);                  // allow output to start
+    HAL_Delay(1);                  // allow output to start
 }
 
 
